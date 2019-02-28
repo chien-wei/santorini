@@ -2,7 +2,7 @@ package cs6963.santorini
 import io.circe._
 import io.circe.generic.auto._
 
-case class Player(tokens: List[List[Int]], card: String)
+//case class Player(tokens: List[List[Int]], card: String)
 //case class Spaces(spaces: List[List[Int]])
 
 object JSON{
@@ -30,7 +30,7 @@ object JSON{
 
     //println(players)
     //println(turn, spaces)
-    Board(turn.toString.toInt, players.asInstanceOf[List[Player]](0), players.asInstanceOf[List[Player]](1), spaces.asInstanceOf[List[List[Int]]])
+    Board(turn.toString.toInt, players.asInstanceOf[List[Player]], spaces.asInstanceOf[List[List[Int]]])
   }
 
 }
