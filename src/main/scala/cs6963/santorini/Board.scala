@@ -4,18 +4,43 @@ import io.circe.{ Decoder, JsonObject, ObjectEncoder }
 import io.circe.generic.JsonCodec
 import io.circe.generic.semiauto.{ deriveDecoder, deriveEncoder }
 
+trait P {
+  def card: String
+}
 
 @JsonCodec
-case class Player(tokens: List[List[Int]], card: String)
+case class PrePlayer(card: String) extends P
 
 @JsonCodec
-case class Board(turn: Int, players: List[Player], spaces: List[List[Int]])
+case class Player(tokens: List[List[Int]], card: String) extends P
 
+@JsonCodec
+case class Board(turn: Int, players: List[Player], spaces: List[List[Int]]) {
 
+  //lazy val actions: List[Action] = validActions()
 
+  def validActions(): Any = {
+    val actions = players.head.card match {
+      case "Nocard" => {
 
-/*object tmp extends App {
-  val board = JSON.parseJSON("""{"turn":18,"players":[{"tokens":[[2,3],[4,4]],"card":"Artemis"},{"tokens":[[2,5],[3,5]],"card":"Prometheus"}],"spaces":[[0,0,0,0,2],[1,1,2,0,0],[1,0,0,3,0],[0,0,3,0,0],[0,0,0,1,4]]}""")
-  print(board.asJson.noSpaces)
+      }
+      case "Hephastus" => {
 
-}*/
+      }
+      case "Prometheus" => {
+
+      }
+    }
+  }
+}
+
+object Board {
+  def handleFirst(prePlayers: Any): String = {
+    val(player1, player2) = prePlayers
+    player2 match {
+      case p: PrePlayer => println("1")
+      case p: Player => println("2")
+    }
+    ""
+  }
+}
