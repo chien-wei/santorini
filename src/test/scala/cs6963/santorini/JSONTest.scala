@@ -29,6 +29,24 @@ class JSONTest extends FlatSpec with Matchers {
     preplayers shouldBe (PrePlayer("Prometheus"), Player(List(List(2, 3), List(4, 4)),"Artemis"))
   }
 
+  "JSON.encode" should "encode no card case during first interaction first player" in {
+    val response = JSON.encode(PrePlayer("Nocard"), Player(List(List(3, 4), List(4, 3)),"Nocard"))
+    response shouldBe "[[[3,4],[4,3]]]"
+  }
 
+  "JSON.encode" should "encode no card case during first interaction second player" in {
+    val response = JSON.encode(Player(List(List(1, 2), List(2, 1)),"Nocard"), Player(List(List(3, 4), List(4, 3)),"Nocard"))
+    response shouldBe "[[[1,2],[2,1]],[[3,4],[4,3]]]"
+  }
+
+  "JSON.encode" should "encode card case during first interaction first player" in {
+    val response = JSON.encode(PrePlayer("Apollo"), Player(List(List(3, 4), List(4, 3)),"Artemis"))
+    response shouldBe "[{\"card\":\"Apollo\"},{\"tokens\":[[3,4],[4,3]],\"card\":\"Artemis\"}]"
+  }
+
+  "JSON.encode" should "encode card case during first interaction second player" in {
+    val response = JSON.encode(Player(List(List(1, 2), List(2, 1)),"Apollo"), Player(List(List(3, 4), List(4, 3)),"Artemis"))
+    response shouldBe "[{\"tokens\":[[1,2],[2,1]],\"card\":\"Apollo\"},{\"tokens\":[[3,4],[4,3]],\"card\":\"Artemis\"}]"
+  }
 
 }

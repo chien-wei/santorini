@@ -1,59 +1,9 @@
+package cs6963.santorini
+
 import scala.util.Random.nextInt
 
 
 object Santorini {
-
-  def jsonParse(jsonString: String): Map[String, String] = {
-    val middle = jsonString match {
-      case x if x startsWith "{" => x.substring(1) match {
-        case y if y endsWith "}" => y.substring(0, y.length - 1)
-      }
-    }
-
-    def seperate(middle: String): List[String] = {
-      middle match {
-        case x if x.indexOf(",\"") != -1 =>
-          x.substring(0, x.indexOf(",\"")) :: seperate(x.substring(x.indexOf(",\"")+1))
-        case x if x.indexOf(":") != -1 => List(x)
-      }
-    }
-    val terms = seperate(middle.replaceAll(" ", ""))
-    terms.map(text => text.split(":")).map(x => x(0).substring(1, x(0).length-1) -> x(1)).toMap
-  }
-
-  def handleFirst(input: String): Any = {
-    //System.err.println("First", input)
-    if (input == "[]") {
-      val worker1 = "[" + (nextInt(3) + 2) + "," +
-        (nextInt(3) + 2) + "]"
-      var worker2 = "[" + (nextInt(3) + 2) + "," +
-        (nextInt(3) + 2) + "]"
-      while (worker1 == worker2) {
-        worker2 = "[" + (nextInt(3) + 2) + "," +
-          (nextInt(3) + 2) + "]"
-      }
-      val player = "[[" + worker1 + "," + worker2 + "]]"
-      // System.err.println(player)
-      println(player)
-    } else {
-      val worker1 = input.slice(2,7)
-      val worker2 = input.slice(8,13)
-      var worker3 = "[" + (nextInt(3) + 2) + "," +
-        (nextInt(3) + 2) + "]"
-      while (worker3 == worker1 || worker3 == worker2) {
-        worker3 = "[" + (nextInt(3) + 2) + "," +
-          (nextInt(3) + 2) + "]"
-      }
-      var worker4 = "[" + (nextInt(3) + 2) + "," +
-        (nextInt(3) + 2) + "]"
-      while (worker4 == worker1 || worker4 == worker2 || worker4 == worker3) {
-        worker4 = "[" + (nextInt(3) + 2) + "," +
-          (nextInt(3) + 2) + "]"
-      }
-      val player = "[[" + worker1 + "," + worker2 + "],[" + worker3 + "," + worker4 + "]]"
-      println(player)
-    }
-  }
 
   def generateMoveAndBuild(hash: Map[String, String]): List[String] = {
 
@@ -134,15 +84,33 @@ object Santorini {
   }
 
   def main(args: Array[String]): Unit = {
-    val firstContact = scala.io.StdIn.readLine()
-    handleFirst(firstContact)
+    // []
+    // [[[1,5],[2,2]]]
+    // [{"card":"Artemis"},{"card":"Prometheus"}]
+    // [{"card":"Prometheus"},{"tokens":[[2,3],[4,4]],"card":"Artemis"}]
+    val firstInputString = scala.io.StdIn.readLine()
+    val (player1, player2) = JSON.parsePre(firstInputString)
 
-    while (true) {
+    // TODO: get type mismatch
+    // val res = StarterPosition.random(player1, player2)
+    val firstRespond = player2 match {
+      case p:PrePlayer => {
+        val res = StarterPosition.random(player1.asInstanceOf[PrePlayer], player2.asInstanceOf[PrePlayer])
+        JSON.encode(res._1, res._2)
+      }
+      case p:Player => {
+        val res = StarterPosition.random(player1.asInstanceOf[PrePlayer], player2.asInstanceOf[Player])
+        JSON.encode(res._1, res._2)
+      }
+    }
+    println(firstRespond)
+
+    /*while (true) {
       val hash = jsonParse(scala.io.StdIn.readLine())
 
       val candidates = generateMoveAndBuild(hash)
       // add a search iswin
       println(candidates(nextInt(candidates.length)))
-    }
+    }*/
   }
 }
