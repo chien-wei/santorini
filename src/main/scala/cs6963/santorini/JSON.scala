@@ -23,13 +23,21 @@ object JSON {
       case Left(error) => println(error.getMessage())
     }
 
-    val playersEither = cursor.downField("players").as[List[Player]]
-    val players = playersEither match {
-      case Right(ps) => ps
-      case Left(error) => println(error.getMessage())
+    if (input contains "tokens") {
+      val playersEither = cursor.downField("players").as[List[Player]]
+      val players = playersEither match {
+        case Right(ps) => ps
+        case Left(error) => println(error.getMessage())
+      }
+      Board(turn.toString.toInt, players.asInstanceOf[List[Player]], spaces.asInstanceOf[List[List[Int]]])
+    } else {
+      val playersEither = cursor.downField("players").as[List[List[List[Int]]]]
+      val players = playersEither match {
+        case Right(ps) => List(Player(ps(0), "Nocard"), Player(ps(1), "Nocard"))
+        case Left(error) => println(error.getMessage())
+      }
+      Board(turn.toString.toInt, players.asInstanceOf[List[Player]], spaces.asInstanceOf[List[List[Int]]])
     }
-
-    Board(turn.toString.toInt, players.asInstanceOf[List[Player]], spaces.asInstanceOf[List[List[Int]]])
   }
 
   def parsePre (input: String)= {
@@ -66,8 +74,7 @@ object JSON {
   }
 
   def encode (input: Board): String = {
-    println(input)
-    ""
+    input.asJson.noSpaces
   }
   def encode (player1: PrePlayer, player2: Player): String = {
     (player1.card, player2.card) match {

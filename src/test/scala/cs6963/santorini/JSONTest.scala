@@ -9,6 +9,13 @@ class JSONTest extends FlatSpec with Matchers {
     board.players shouldBe List(Player(List(List(2, 3), List(4, 4)),"Artemis"), Player(List(List(2, 5), List(3, 5)),"Prometheus"))
   }
 
+  "JSON.parseJSON" should "parse valid no card string" in {
+    val board = JSON.parseJSON("""{"turn":12,"players":[[[3,2],[5,1]],[[2,4],[4,3]]],"spaces":[[0,1,0,0,0],[1,1,2,0,0],[0,1,0,1,1],[0,0,1,1,0],[0,1,1,0,0]]}""")
+    board.turn shouldBe 12
+    board.spaces shouldBe List(List(0, 1, 0, 0, 0), List(1, 1, 2, 0, 0), List(0, 1, 0, 1, 1), List(0, 0, 1, 1, 0), List(0, 1, 1, 0, 0))
+    board.players shouldBe List(Player(List(List(3, 2), List(5, 1)),"Nocard"), Player(List(List(2, 4), List(4, 3)),"Nocard"))
+  }
+
   "JSON.parsePre" should "parse valid first no-card setup string" in {
     val preplayers = JSON.parsePre("""[]""")
     preplayers shouldBe (PrePlayer("Nocard"), PrePlayer("Nocard"))
@@ -27,6 +34,12 @@ class JSONTest extends FlatSpec with Matchers {
   "JSON.parsePre" should "parse valid second setup string" in {
     val preplayers = JSON.parsePre("""[{"card":"Prometheus"},{"tokens":[[2,3],[4,4]],"card":"Artemis"}]""")
     preplayers shouldBe (PrePlayer("Prometheus"), Player(List(List(2, 3), List(4, 4)),"Artemis"))
+  }
+
+  "JSON.encode" should "encode valid board" in {
+    val input = """{"turn":18,"players":[{"tokens":[[2,3],[4,4]],"card":"Artemis"},{"tokens":[[2,5],[3,5]],"card":"Prometheus"}],"spaces":[[0,0,0,0,2],[1,1,2,0,0],[1,0,0,3,0],[0,0,3,0,0],[0,0,0,1,4]]}"""
+    val board = JSON.parseJSON(input)
+    JSON.encode(board) shouldBe input
   }
 
   "JSON.encode" should "encode no card case during first interaction first player" in {
