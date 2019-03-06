@@ -2,6 +2,7 @@ package cs6963.santorini
 import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
+import io.circe.generic.JsonCodec
 
 //case class Player(tokens: List[List[Int]], card: String)
 //case class Spaces(spaces: List[List[Int]])
@@ -73,8 +74,14 @@ object JSON {
     prePlayers
   }
 
-  def encode (input: Board): String = {
-    input.asJson.noSpaces
+  @JsonCodec
+  case class NoCardBoard(turn: Int, players: List[List[List[Int]]], spaces: List[List[Int]])
+
+  def encode (board: Board): String = {
+    (board.players(0).card, board.players(1).card) match {
+      case ("Nocard", "Nocard") => NoCardBoard(board.turn, List(board.players(0).tokens, board.players(1).tokens), board.spaces).asJson.noSpaces
+      case (_, _) => board.asJson.noSpaces
+    }
   }
   def encode (player1: PrePlayer, player2: Player): String = {
     (player1.card, player2.card) match {

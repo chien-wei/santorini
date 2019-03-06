@@ -62,4 +62,13 @@ class JSONTest extends FlatSpec with Matchers {
     response shouldBe "[{\"tokens\":[[1,2],[2,1]],\"card\":\"Apollo\"},{\"tokens\":[[3,4],[4,3]],\"card\":\"Artemis\"}]"
   }
 
+  "JSON.encode" should "encode no card case for board" in {
+    val response = JSON.encode(Board(12,List(Player(List(List(4, 1), List(5, 1)),"Nocard"), Player(List(List(2, 4), List(4, 3)),"Nocard")),List(List(0, 1, 0, 0, 0), List(1, 1, 2, 1, 0), List(0, 1, 0, 1, 1), List(0, 0, 1, 1, 0), List(0, 1, 1, 0, 0))))
+    response shouldBe "{\"turn\":12,\"players\":[[[4,1],[5,1]],[[2,4],[4,3]]],\"spaces\":[[0,1,0,0,0],[1,1,2,1,0],[0,1,0,1,1],[0,0,1,1,0],[0,1,1,0,0]]}"
+  }
+
+  "JSON.encode" should "encode card case for board" in {
+    val response = JSON.encode(Board(12,List(Player(List(List(4, 1), List(5, 1)),"Apollo"), Player(List(List(2, 4), List(4, 3)),"Hephastus")),List(List(0, 1, 0, 0, 0), List(1, 1, 2, 1, 0), List(0, 1, 0, 1, 1), List(0, 0, 1, 1, 0), List(0, 1, 1, 0, 0))))
+    response shouldBe "{\"turn\":12,\"players\":[{\"tokens\":[[4,1],[5,1]],\"card\":\"Apollo\"},{\"tokens\":[[2,4],[4,3]],\"card\":\"Hephastus\"}],\"spaces\":[[0,1,0,0,0],[1,1,2,1,0],[0,1,0,1,1],[0,0,1,1,0],[0,1,1,0,0]]}"
+  }
 }
