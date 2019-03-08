@@ -1,6 +1,9 @@
 package cs6963.santorini
 
 import scala.util.Random.nextInt
+import scala.util.Random.shuffle
+import io.circe.generic.JsonCodec
+import io.circe.syntax._
 
 
 object Santorini {
@@ -84,6 +87,7 @@ object Santorini {
   }
 
   def main(args: Array[String]): Unit = {
+
     // []
     // [[[1,5],[2,2]]]
     // [{"card":"Artemis"},{"card":"Prometheus"}]
@@ -105,12 +109,15 @@ object Santorini {
     }
     println(firstRespond)
 
-    /*while (true) {
-      val hash = jsonParse(scala.io.StdIn.readLine())
 
-      val candidates = generateMoveAndBuild(hash)
-      // add a search iswin
-      println(candidates(nextInt(candidates.length)))
-    }*/
+    while (true) {
+      val board = JSON.parseJSON(scala.io.StdIn.readLine())
+      // token 0
+      val token0 = board.players(0).tokens(0)
+      // token 1
+      val token1 = board.players(0).tokens(1)
+      println(JSON.encode(shuffle(Cards.actions(token0, board)).head))
+    }
+
   }
 }

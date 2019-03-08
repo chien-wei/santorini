@@ -8,10 +8,10 @@ Usage:
 ./random.sh
 
 ## TODO note:
-* Move need to check other tokens
+* [v] Move need to check other tokens
 * ApolloMove need to team token, and check enemy's tokens and swap
 * ArtemisMove need to check Change on the token can't be (0, 0)
-* Build need to check height != 4
+* [v] Build need to check height != 4
 * AtlasBuild build have at most two cases for each buildable (for height 1, 1->2 and 1->4)
 * DemeterBuild build two time on different place
 * HephastusBuild build two time on same place and not over 4
