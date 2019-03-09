@@ -116,7 +116,7 @@ object Santorini {
       val token0 = board.players(0).tokens(0)
       // token 1
       val token1 = board.players(0).tokens(1)
-      println(JSON.encode(shuffle(Cards.actions(token0, board)).head))
+      //println(JSON.encode(shuffle(Cards.actions(token0, board)).head))
     }
 
   }

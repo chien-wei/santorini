@@ -20,6 +20,24 @@ case class Board(turn: Int, players: List[Player], spaces: List[List[Int]]) {
 
   //lazy val actions: List[Action] = validActions()
 
+  def token0: List[Int] = this.players(0).tokens(0)
+  def token1: List[Int] = this.players(0).tokens(1)
+  def token2: List[Int] = this.players(1).tokens(0)
+  def token3: List[Int] = this.players(1).tokens(1)
+
+
+  def addChange(change: Change): Board = {
+    val spaces = (this.spaces.flatten, change.spaces.flatten).zipped.map(_+_).grouped(5).toList
+    val token0 = (this.token0, change.tokens(0)).zipped.map(_+_)
+    val token1 = (this.token1, change.tokens(1)).zipped.map(_+_)
+    val token2 = (this.token2, change.tokens(2)).zipped.map(_+_)
+    val token3 = (this.token3, change.tokens(3)).zipped.map(_+_)
+    val newBoard = Board(this.turn,
+      List(Player(List(token0, token1), this.players(0).card), Player(List(token2, token3), this.players(1).card)),
+      spaces)
+    newBoard
+  }
+
   def validActions(): Any = {
     val actions = players.head.card match {
       case "Nocard" => {
