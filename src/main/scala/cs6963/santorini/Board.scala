@@ -25,6 +25,12 @@ case class Board(turn: Int, players: List[Player], spaces: List[List[Int]]) {
   def token2: List[Int] = this.players(1).tokens(0)
   def token3: List[Int] = this.players(1).tokens(1)
 
+  def isWin: Boolean = {
+    val spaceTmp = this.spaces.flatten.toArray
+    if (spaceTmp(token0(1) + 5 * token0(0) - 6) == 3 || spaceTmp(token1(1) + 5 * token1(0) - 6) == 3) true
+    else false
+  }
+
 
   def addChange(change: Change): Board = {
     val spaces = (this.spaces.flatten, change.spaces.flatten).zipped.map(_+_).grouped(5).toList

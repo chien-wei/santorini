@@ -67,15 +67,14 @@ object Cards {
     val init = List(Change(List(List(0,0),List(0,0),List(0,0),List(0,0)),
                       List(List(0,0,0,0,0),List(0,0,0,0,0),List(0,0,0,0,0),List(0,0,0,0,0),List(0,0,0,0,0))))
 
-    val token = if (isFirstToken) board.token0 else board.token1
     val card = board.players(0).card
-    val height = Board.getHeight(board, token)
 
     def getMovableDirs(isFirstToken: Boolean, board: Board): List[List[List[Int]]] = {
       val (x, y) = if (isFirstToken) (board.token0(0), board.token0(1)) else (board.token1(0), board.token1(1))
       val dirs = List(List(-1, -1), List(-1, 0), List(-1, 1), List(0, 1),
                       List(1, 1), List(1, 0), List(1, -1), List(0, -1))
-
+      val token = if (isFirstToken) board.token0 else board.token1
+      val height = Board.getHeight(board, token)
       val result = dirs.filter( d => {
         val (dx, dy) = (d(0)+x, d(1)+y)
         val dxy = List(dx, dy)
@@ -98,7 +97,8 @@ object Cards {
       val (x, y) = if (isFirstToken) (board.token0(0), board.token0(1)) else (board.token1(0), board.token1(1))
       val dirs = List(List(-1, -1), List(-1, 0), List(-1, 1), List(0, 1),
         List(1, 1), List(1, 0), List(1, -1), List(0, -1))
-
+      val token = if (isFirstToken) board.token0 else board.token1
+      val height = Board.getHeight(board, token)
       val result = dirs.filter( d => {
         val (dx, dy) = (d(0)+x, d(1)+y)
         val dxy = List(dx, dy)
@@ -159,6 +159,39 @@ object Cards {
       })
     }
 
+    def getBuildableDirsAltas(isFirstToken: Boolean, board: Board): List[List[List[Int]]] = {
+      val (x, y) = if (isFirstToken) (board.token0(0), board.token0(1)) else (board.token1(0), board.token1(1))
+      val dirs = List(List(-1, -1), List(-1, 0), List(-1, 1), List(0, 1),
+        List(1, 1), List(1, 0), List(1, -1), List(0, -1))
+
+      val result = dirs.filter( d => {
+        val (dx, dy) = (d(0)+x, d(1)+y)
+        val dxy = List(dx, dy)
+        !(dx < 1 ||
+          dx > 5 ||
+          dy < 1 ||
+          dy > 5 ||
+          Board.getHeight(board, dxy) >= 4 ||
+          dxy == board.token0 ||
+          dxy == board.token1 ||
+          dxy == board.token2 ||
+          dxy == board.token3 )
+      })
+
+      result.map(res => if (isFirstToken) {
+        var spaces = List(List(0, 0, 0, 0, 0), List(0, 0, 0, 0, 0), List(0, 0, 0, 0, 0), List(0, 0, 0, 0, 0), List(0, 0, 0, 0, 0)).flatten.toArray
+        val sxy = (res,board.token0).zipped.map(_+_)
+        spaces(sxy(1) + 5 * sxy(0) - 6) += 4 - board.spaces.flatten.toList(sxy(1) + 5 * sxy(0) - 6)
+        spaces.toList.grouped(5).toList
+      }
+      else {
+        var spaces = List(List(0, 0, 0, 0, 0), List(0, 0, 0, 0, 0), List(0, 0, 0, 0, 0), List(0, 0, 0, 0, 0), List(0, 0, 0, 0, 0)).flatten.toArray
+        val sxy = (res,board.token1).zipped.map(_+_)
+        spaces(sxy(1) + 5 * sxy(0) - 6) += 4 - board.spaces.flatten.toList(sxy(1) + 5 * sxy(0) - 6)
+        spaces.toList.grouped(5).toList
+      })
+    }
+
 
     def getDirs(pos: List[Int]): List[List[Int]] = {
       // TODO: Prometheus might need this
@@ -181,7 +214,8 @@ object Cards {
     def Build(changes: List[Change]): List[Change] = {
       changes.flatMap(change => {
         val newBoard = board.addChange(change)
-        getBuildableDirs(isFirstToken, newBoard).map(spaces =>
+        if (newBoard.isWin) List(change)
+        else getBuildableDirs(isFirstToken, newBoard).map(spaces =>
           change.addSpaces(spaces)
         )
       })
@@ -201,18 +235,43 @@ object Cards {
     }
 
     def ArtemisMove(changes: List[Change]): List[Change] = {
-      changes ++ Move(changes)
+      changes.flatMap(change => {
+        val newBoard = board.addChange(change)
+        if (newBoard.isWin) List(change)
+        else List(change) ++ Move(List(change)).filter(nobackChange => {
+          if (isFirstToken) nobackChange.tokens(0) != List(0, 0)
+          else nobackChange.tokens(1) != List(0, 0)
+        })
+      })
     }
 
     def AtlasBuild(changes: List[Change]): List[Change] = {
-      changes
+      Build(changes) ++
+        changes.flatMap(change => {
+          val newBoard = board.addChange(change)
+          if (newBoard.isWin) List(change)
+          else getBuildableDirsAltas(isFirstToken, newBoard).map(spaces =>
+            change.addSpaces(spaces)
+          )
+        })
     }
 
-    def DemeterBuild(changes: List[Change]) {}//: List[Change] = {...}
+    def DemeterBuild(changes: List[Change]): List[Change] = {
+      changes ++
+        Build(changes).filter(change =>
+          !change.spaces.flatten.contains(2)
+        )
+    }
 
     def HephastusBuild(changes: List[Change]): List[Change] = {
-      //changes ++
-      changes
+      changes ++
+      Build(changes).filter(change => {
+        val newBoard = board.addChange(change)
+        val tupleList = (newBoard.spaces.flatten, change.spaces.flatten).zipped.toList
+        if (tupleList.contains((4,2))) false
+        else if (change.spaces.flatten.contains(2)) true
+        else false
+      })
     }
 
     def MinotaurMove(changes: List[Change]) {}//: List[Change] = {...}
@@ -226,8 +285,8 @@ object Cards {
       case "Apollo" => Build( ApolloMove(init))
       case "Artemis" => Build( ArtemisMove( Move(init)))
       case "Atlas" => AtlasBuild( Move(init))
-      //case "Demeter" => DemeterBuild( Build( Move(init)))
-      //case "Hephastus" => HephastusBuild( Build( Move(init)))
+      case "Demeter" => DemeterBuild( Build( Move(init)))
+      case "Hephastus" => HephastusBuild( Build( Move(init)))
       //case "Minotaur" => Build( MinotaurMove(init))
       //case "Prometheus" => Build( PrometheusMove( PrometheusBuild(init)))
     })
@@ -240,13 +299,15 @@ object run extends App {
   println(board)
   println(Cards.PlayRandom(board))
 
-  val board1 = JSON.parseJSON("""{"turn":0,"players":[{"tokens":[[2,3],[4,4]],"card":"Apollo"},{"tokens":[[2,5],[3,5]],"card":"Prometheus"}],"spaces":[[0,0,0,0,2],[1,1,2,0,0],[1,0,0,3,0],[0,0,3,0,0],[0,0,0,1,4]]}""")
-  val board2 = JSON.parseJSON("""{"turn":1,"players":[{"tokens":[[2,5],[4,4]],"card":"Prometheus"},{"tokens":[[2,3],[3,5]],"card":"Apollo"}],"spaces":[[0,0,0,0,2],[1,1,2,0,0],[1,0,0,3,0],[0,0,3,0,1],[0,0,0,1,4]]}""")
+  val board1 = JSON.parseJSON("""{"turn":0,"players":[{"tokens":[[2,3],[4,4]],"card":"Artemis"},{"tokens":[[2,5],[3,5]],"card":"Prometheus"}],"spaces":[[0,0,0,0,2],[1,1,2,0,0],[1,0,0,3,0],[0,0,3,0,0],[0,0,0,1,4]]}""")
+  val board2 = JSON.parseJSON("""{"turn":1,"players":[{"tokens":[[2,5],[3,5]],"card":"Prometheus"},{"tokens":[[4,3],[4,4]],"card":"Artemis"}],"spaces":[[0,0,0,0,2],[1,1,2,0,0],[1,0,0,3,0],[0,0,3,0,0],[0,0,0,1,4]]}""")
 
   println(board1)
   println(Cards.listAll(board1).map(x => JSON.encode(x)).mkString("\n"))
-  println()
-  //println(Cards.listAll(board).map(x => JSON.encode(x)).mkString("\n"))
 
+  println(Cards.listAll(board1).contains(board2))
+  //println(Cards.listAll(board).map(x => JSON.encode(x)).mkString("\n"))
+  //val b = Board(0,List(Player(List(List(3, 4), List(4, 4)),"Artemis"), Player(List(List(2, 5), List(3, 5)),"Prometheus")),List(List(0, 0, 0, 0, 2), List(1, 1, 2, 0, 0), List(1, 0, 0, 3, 0), List(0, 0, 3, 0, 0), List(0, 0, 0, 1, 4)))
+  //println(b.isWin)
 
 }
