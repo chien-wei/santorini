@@ -166,6 +166,29 @@ object Cards {
         }})
     }
 
+    def getPrometheusMoveDirs(isFirstToken: Boolean, board: Board): List[List[List[Int]]] = {
+      val (x, y) = if (isFirstToken) (board.token0(0), board.token0(1)) else (board.token1(0), board.token1(1))
+      val dirs = List(List(-1, -1), List(-1, 0), List(-1, 1), List(0, 1),
+        List(1, 1), List(1, 0), List(1, -1), List(0, -1))
+      val token = if (isFirstToken) board.token0 else board.token1
+      val height = Board.getHeight(board, token)
+      val result = dirs.filter( d => {
+        val (dx, dy) = (d(0)+x, d(1)+y)
+        val dxy = List(dx, dy)
+        !(dx < 1 ||
+          dx > 5 ||
+          dy < 1 ||
+          dy > 5 ||
+          Board.getHeight(board, dxy) > height ||
+          dxy == board.token0 ||
+          dxy == board.token1 ||
+          dxy == board.token2 ||
+          dxy == board.token3 )
+      })
+      result.map(res => if (isFirstToken) List(res, List(0,0), List(0,0), List(0,0))
+      else List(List(0,0), res, List(0,0), List(0,0)))
+    }
+
     def getBuildableDirs(isFirstToken: Boolean, board: Board): List[List[List[Int]]] = {
       val (x, y) = if (isFirstToken) (board.token0(0), board.token0(1)) else (board.token1(0), board.token1(1))
       val dirs = List(List(-1, -1), List(-1, 0), List(-1, 1), List(0, 1),
@@ -323,9 +346,20 @@ object Cards {
       })
     }
 
-    def PrometheusBuild(changes: List[Change]) {}//: List[Change] = {...}
+    def PrometheusBuild(changes: List[Change]): List[Change] = {
+      changes ++
+        Build(changes)
+    }
 
-    def PrometheusMove(changes: List[Change]) {}//: List[Change] = {...}
+    def PrometheusMove(changes: List[Change]): List[Change] = {
+      changes.flatMap(change => {
+        if (change.spaces.flatten.contains(1)) {
+          val newBoard = board.addChange(change)
+          getPrometheusMoveDirs(isFirstToken, newBoard).map(dir => change.addDirs(dir))
+        }
+        else Move(List(change))
+      })
+    }
 
     toBoard(card match {
       case "Nocard" => Build( Move(init))
@@ -335,7 +369,7 @@ object Cards {
       case "Demeter" => DemeterBuild( Build( Move(init)))
       case "Hephastus" => HephastusBuild( Build( Move(init)))
       case "Minotaur" => Build( MinotaurMove(init))
-      //case "Prometheus" => Build( PrometheusMove( PrometheusBuild(init)))
+      case "Prometheus" => Build( PrometheusMove( PrometheusBuild(init)))
     })
   }
 }
@@ -346,8 +380,8 @@ object run extends App {
   println(board)
   println(Cards.PlayRandom(board))
 
-  val board1 = JSON.parseJSON("""{"turn":0,"players":[{"tokens":[[1,1],[5,5]],"card":"Minotaur"},{"tokens":[[2,2],[4,4]],"card":"Prometheus"}],"spaces":[[0,3,0,0,0],[3,0,0,0,0],[0,0,0,0,0],[0,0,0,0,3],[0,0,0,3,0]]}""")
-  val board2 = JSON.parseJSON("""{"turn":1,"players":[{"tokens":[[3,3],[4,4]],"card":"Prometheus"},{"tokens":[[2,2],[5,5]],"card":"Minotaur"}],"spaces":[[0,4,0,0,0],[3,0,0,0,0],[0,0,0,0,0],[0,0,0,0,3],[0,0,0,3,0]]}""")
+  val board1 = JSON.parseJSON("""{"turn":0,"players":[{"tokens":[[1,1],[5,3]],"card":"Artemis"},{"tokens":[[5,4],[5,5]],"card":"Apollo"}],"spaces":[[3,3,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]}""")
+  val board2 = JSON.parseJSON("""{"turn":1,"players":[{"tokens":[[5,4],[5,5]],"card":"Apollo"},{"tokens":[[1,2],[5,3]],"card":"Artemis"}],"spaces":[[3,3,0,0,0],[1,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]}""")
 
   println(board1)
   println(Cards.listAll(board1).map(x => JSON.encode(x)).mkString("\n"))
