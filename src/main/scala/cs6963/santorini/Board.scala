@@ -43,20 +43,6 @@ case class Board(turn: Int, players: List[Player], spaces: List[List[Int]]) {
       spaces)
     newBoard
   }
-
-  def validActions(): Any = {
-    val actions = players.head.card match {
-      case "Nocard" => {
-
-      }
-      case "Hephastus" => {
-
-      }
-      case "Prometheus" => {
-
-      }
-    }
-  }
 }
 
 object Action {
@@ -141,27 +127,12 @@ object Board {
     board.spaces.flatten.toList(pos(1) + 5 * pos(0) - 6)
   }
 
-  /*def createActions(board: Board): List[Action] = {
-    val card = board.players(0).card
-    val token0 = board.players(0).tokens(0)
-    val token1 = board.players(0).tokens(1)
-    card match {
-      case "Nocard" => {
-        Move(Pos(token0(0), token0(1)), board).apply()
-      }
-      case _ => {
-
-      }
-    }
-    List(Move(Pos(1, 2), board), Build(Pos(1,2), board))
-  }*/
-
   def switchPlayerAndAddTurn(board: Board): Board = {
     Board(board.turn+1, List(board.players(1), board.players(0)), board.spaces)
   }
 }
 
-object tmp extends App {
+/*object tmp extends App {
   val board = JSON.parseJSON("""{"turn":12,"players":[[[3,2],[5,1]],[[2,4],[4,3]]],"spaces":[[0,1,0,0,0],[1,1,2,0,0],[0,1,0,1,1],[0,0,1,1,0],[0,1,1,0,0]]}""")
   // token 0
   val token0 = List(board.players(0).tokens(0)(0), board.players(0).tokens(0)(1))
@@ -175,5 +146,5 @@ object tmp extends App {
   println(b)
   println(JSON.encode(b))
 
-}
+}*/
 

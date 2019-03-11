@@ -374,7 +374,7 @@ object Cards {
   }
 }
 
-object run extends App {
+/*object run extends App {
   val board = JSON.parseJSON("""{"turn":12,"players":[[[3,2],[5,1]],[[2,4],[4,3]]],"spaces":[[0,1,0,0,0],[1,1,2,0,0],[0,1,0,1,1],[0,0,1,1,0],[0,1,1,0,0]]}""")
   // token 0
   println(board)
@@ -387,8 +387,5 @@ object run extends App {
   println(Cards.listAll(board1).map(x => JSON.encode(x)).mkString("\n"))
 
   println(Cards.listAll(board1).contains(board2))
-  //println(Cards.listAll(board).map(x => JSON.encode(x)).mkString("\n"))
-  //val b = Board(0,List(Player(List(List(3, 4), List(4, 4)),"Artemis"), Player(List(List(2, 5), List(3, 5)),"Prometheus")),List(List(0, 0, 0, 0, 2), List(1, 1, 2, 0, 0), List(1, 0, 0, 3, 0), List(0, 0, 3, 0, 0), List(0, 0, 0, 1, 4)))
-  //println(b.isWin)
 
-}
+}*/

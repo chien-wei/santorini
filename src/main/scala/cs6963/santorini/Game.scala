@@ -1,10 +1,5 @@
 package cs6963.santorini
 
-import scala.util.Random.nextInt
-import scala.util.Random.shuffle
-import io.circe.generic.JsonCodec
-import io.circe.syntax._
-
 
 object Santorini {
 
@@ -112,11 +107,7 @@ object Santorini {
 
     while (true) {
       val board = JSON.parseJSON(scala.io.StdIn.readLine())
-      // token 0
-      val token0 = board.players(0).tokens(0)
-      // token 1
-      val token1 = board.players(0).tokens(1)
-      //println(JSON.encode(shuffle(Cards.actions(token0, board)).head))
+      println(JSON.encode(Cards.PlayRandom(board)))
     }
 
   }
