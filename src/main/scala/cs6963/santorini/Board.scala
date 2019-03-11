@@ -138,7 +138,7 @@ object Board {
   }
 
   def getHeight(board: Board, pos: List[Int]): Int = {
-    board.spaces(pos(0)-1)(pos(1)-1)
+    board.spaces.flatten.toList(pos(1) + 5 * pos(0) - 6)
   }
 
   /*def createActions(board: Board): List[Action] = {

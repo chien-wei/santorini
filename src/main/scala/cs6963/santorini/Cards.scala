@@ -126,6 +126,46 @@ object Cards {
       }})
     }
 
+    def getMinotaurMoveDirs(pos: Boolean, board: Board): List[List[List[Int]]] = {
+      // TODO: pos
+      val (x, y) = if (isFirstToken) (board.token0(0), board.token0(1)) else (board.token1(0), board.token1(1))
+      val dirs = List(List(-1, -1), List(-1, 0), List(-1, 1), List(0, 1),
+        List(1, 1), List(1, 0), List(1, -1), List(0, -1))
+      val token = if (isFirstToken) board.token0 else board.token1
+      val height = Board.getHeight(board, token)
+      val result = dirs.filter( d => {
+        val (dx, dy) = (d(0)+x, d(1)+y)
+        val dxy = List(dx, dy)
+        val dxxyy = List(dx+d(0), dy+d(1))
+        val basic = !(dx < 1 ||
+          dx > 5 ||
+          dy < 1 ||
+          dy > 5 ||
+          Board.getHeight(board, dxy) > height + 1 ||
+          Board.getHeight(board, dxy) == 4 ||
+          dxy == board.token0 ||
+          dxy == board.token1
+          )
+
+        basic && (dxy == board.token2 && dxxyy(0) >= 1 && dxxyy(0) <= 5 && dxxyy(1) >= 1 && dxxyy(1) <= 5
+            && dxxyy != board.token0 && dxxyy != board.token1 && dxxyy != board.token3 && Board.getHeight(board, dxxyy) < 4) ||
+        basic && (dxy == board.token3 && dxxyy(0) >= 1 && dxxyy(0) <= 5 && dxxyy(1) >= 1 && dxxyy(1) <= 5
+            && dxxyy != board.token0 && dxxyy != board.token1 && dxxyy != board.token2 && Board.getHeight(board, dxxyy) < 4)
+      })
+      result.map(res =>
+      {
+        if (isFirstToken) {
+          if ((res,board.token0).zipped.map(_+_) == board.token2) List(res, List(0,0), res, List(0,0))
+          else if ((res,board.token0).zipped.map(_+_) == board.token3) List(res, List(0,0), List(0,0), res)
+          else List(res, List(0,0), List(0,0), List(0,0))
+        }
+        else {
+          if ((res,board.token1).zipped.map(_+_) == board.token2) List(List(0,0), res, res, List(0,0))
+          else if ((res,board.token1).zipped.map(_+_) == board.token3) List(List(0,0), res, List(0,0), res)
+          else List(List(0,0), res, List(0,0), List(0,0))
+        }})
+    }
+
     def getBuildableDirs(isFirstToken: Boolean, board: Board): List[List[List[Int]]] = {
       val (x, y) = if (isFirstToken) (board.token0(0), board.token0(1)) else (board.token1(0), board.token1(1))
       val dirs = List(List(-1, -1), List(-1, 0), List(-1, 1), List(0, 1),
@@ -274,7 +314,14 @@ object Cards {
       })
     }
 
-    def MinotaurMove(changes: List[Change]) {}//: List[Change] = {...}
+    def MinotaurMove(changes: List[Change]): List[Change] = {
+      changes.flatMap(change => {
+        val newBoard = board.addChange(change)
+        getMinotaurMoveDirs(isFirstToken, newBoard).map(dir => {
+          change.addDirs(dir)
+        })
+      })
+    }
 
     def PrometheusBuild(changes: List[Change]) {}//: List[Change] = {...}
 
@@ -287,7 +334,7 @@ object Cards {
       case "Atlas" => AtlasBuild( Move(init))
       case "Demeter" => DemeterBuild( Build( Move(init)))
       case "Hephastus" => HephastusBuild( Build( Move(init)))
-      //case "Minotaur" => Build( MinotaurMove(init))
+      case "Minotaur" => Build( MinotaurMove(init))
       //case "Prometheus" => Build( PrometheusMove( PrometheusBuild(init)))
     })
   }
@@ -299,8 +346,8 @@ object run extends App {
   println(board)
   println(Cards.PlayRandom(board))
 
-  val board1 = JSON.parseJSON("""{"turn":0,"players":[{"tokens":[[2,3],[4,4]],"card":"Artemis"},{"tokens":[[2,5],[3,5]],"card":"Prometheus"}],"spaces":[[0,0,0,0,2],[1,1,2,0,0],[1,0,0,3,0],[0,0,3,0,0],[0,0,0,1,4]]}""")
-  val board2 = JSON.parseJSON("""{"turn":1,"players":[{"tokens":[[2,5],[3,5]],"card":"Prometheus"},{"tokens":[[4,3],[4,4]],"card":"Artemis"}],"spaces":[[0,0,0,0,2],[1,1,2,0,0],[1,0,0,3,0],[0,0,3,0,0],[0,0,0,1,4]]}""")
+  val board1 = JSON.parseJSON("""{"turn":0,"players":[{"tokens":[[1,1],[5,5]],"card":"Minotaur"},{"tokens":[[2,2],[4,4]],"card":"Prometheus"}],"spaces":[[0,3,0,0,0],[3,0,0,0,0],[0,0,0,0,0],[0,0,0,0,3],[0,0,0,3,0]]}""")
+  val board2 = JSON.parseJSON("""{"turn":1,"players":[{"tokens":[[3,3],[4,4]],"card":"Prometheus"},{"tokens":[[2,2],[5,5]],"card":"Minotaur"}],"spaces":[[0,4,0,0,0],[3,0,0,0,0],[0,0,0,0,0],[0,0,0,0,3],[0,0,0,3,0]]}""")
 
   println(board1)
   println(Cards.listAll(board1).map(x => JSON.encode(x)).mkString("\n"))
