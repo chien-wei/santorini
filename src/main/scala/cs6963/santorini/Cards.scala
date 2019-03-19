@@ -56,7 +56,10 @@ object Cards {
   }
 
   def PlayRandom(board: Board): Board = {
-    shuffle(actions(true, board) ++ actions(false, board)).head
+    // TODO handle exception if the list are empty
+    val allResults = shuffle(actions(true, board) ++ actions(false, board))
+    println(allResults)
+    allResults.head
   }
 
   def listAll(board: Board): List[Board] = {
@@ -338,6 +341,7 @@ object Cards {
     }
 
     def MinotaurMove(changes: List[Change]): List[Change] = {
+      Move(changes) ++
       changes.flatMap(change => {
         val newBoard = board.addChange(change)
         getMinotaurMoveDirs(isFirstToken, newBoard).map(dir => {
@@ -375,17 +379,19 @@ object Cards {
 }
 
 /*object run extends App {
-  val board = JSON.parseJSON("""{"turn":12,"players":[[[3,2],[5,1]],[[2,4],[4,3]]],"spaces":[[0,1,0,0,0],[1,1,2,0,0],[0,1,0,1,1],[0,0,1,1,0],[0,1,1,0,0]]}""")
+  val jsonString = "{\"turn\":14,\"players\":[{\"tokens\":[[4,1],[4,3]],\"card\":\"Minotaur\"},{\"tokens\":[[3,5],[4,2]],\"card\":\"Apollo\"}],\"style\":{\"players\":[\"kenway/play\",\"stone/play\"]},\"spaces\":[[0,0,0,0,0],[1,0,0,0,0],[3,2,0,0,0],[0,3,1,0,1],[1,0,1,1,0]]}"
+
+  val board = JSON.parseJSON(jsonString)
   // token 0
   println(board)
   println(Cards.PlayRandom(board))
 
-  val board1 = JSON.parseJSON("""{"turn":0,"players":[{"tokens":[[1,1],[5,3]],"card":"Artemis"},{"tokens":[[5,4],[5,5]],"card":"Apollo"}],"spaces":[[3,3,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]}""")
-  val board2 = JSON.parseJSON("""{"turn":1,"players":[{"tokens":[[5,4],[5,5]],"card":"Apollo"},{"tokens":[[1,2],[5,3]],"card":"Artemis"}],"spaces":[[3,3,0,0,0],[1,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]}""")
+  //val board1 = JSON.parseJSON("""{"turn":0,"players":[{"tokens":[[1,1],[5,3]],"card":"Artemis"},{"tokens":[[5,4],[5,5]],"card":"Apollo"}],"spaces":[[3,3,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]}""")
+  //val board2 = JSON.parseJSON("""{"turn":1,"players":[{"tokens":[[5,4],[5,5]],"card":"Apollo"},{"tokens":[[1,2],[5,3]],"card":"Artemis"}],"spaces":[[3,3,0,0,0],[1,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]}""")
 
-  println(board1)
-  println(Cards.listAll(board1).map(x => JSON.encode(x)).mkString("\n"))
+  //println(board1)
+  //println(Cards.listAll(board1).map(x => JSON.encode(x)).mkString("\n"))
 
-  println(Cards.listAll(board1).contains(board2))
+  //println(Cards.listAll(board1).contains(board2))
 
 }*/

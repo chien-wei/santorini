@@ -3,7 +3,7 @@ import scala.io.Source
 
 object TurnCheck {
 
-  def main2(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = {
     val filename = scala.io.StdIn.readLine() // "testcases.txt"
 
     var description = ""
