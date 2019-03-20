@@ -6,10 +6,9 @@ Need to run with judge program.
 
 ## Run turn checker:
 ./turnchecker.sh
-Then type location of "testcases.txt" as input.
-
+Type empty line to exit the process.
 
 ### TODO note:
-* Testcase staying on three level not passed
 * Make dependency clearer
 * Cut move, build into smaller pieces reusability
+* Because Change class are changed, CardsTest.scala needs to update

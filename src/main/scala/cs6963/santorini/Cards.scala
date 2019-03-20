@@ -3,25 +3,39 @@ package cs6963.santorini
 import scala.util.Random.shuffle
 
 
-case class Change(tokens: List[List[Int]], spaces: List[List[Int]]) {
+case class Change(tokens: List[List[Int]], spaces: List[List[Int]], moveUp: Boolean) {
   def add(ch2: Change): Change = {
     Change(
       this.tokens.flatten.zipAll(ch2.tokens.flatten,0,0).map { case (a, b) => a + b} grouped 2 toList,
-      this.spaces.flatten.zipAll(ch2.spaces.flatten,0,0).map { case (a, b) => a + b} grouped 5 toList
+      this.spaces.flatten.zipAll(ch2.spaces.flatten,0,0).map { case (a, b) => a + b} grouped 5 toList,
+      this.moveUp || ch2.moveUp
     )
   }
 
-  def addDirs(t: List[List[Int]]): Change = {
-    Change(
-      this.tokens.flatten.zipAll(t.flatten,0,0).map { case (a, b) => a + b} grouped 2 toList,
-      this.spaces
-    )
+  def addDirs(t: List[List[Int]], newBoard: Board, isFirstToken: Boolean): Change = {
+    val movingToken = if (isFirstToken) newBoard.token0 else newBoard.token1
+    val heightBeforeMove = Board.getHeight(newBoard, movingToken)
+    val newPoss = this.tokens.flatten.zipAll(t.flatten,0,0).map { case (a, b) => a + b} grouped 2 toList
+
+    if (isFirstToken)
+      Change(
+        newPoss,
+        this.spaces,
+        this.moveUp || Board.getHeight(newBoard, t(0).zip(movingToken).map{ case (a, b) => a + b}) > heightBeforeMove
+      )
+    else
+      Change(
+        newPoss,
+        this.spaces,
+        this.moveUp || Board.getHeight(newBoard, t(1).zip(movingToken).map{ case (a, b) => a + b}) > heightBeforeMove
+      )
   }
 
   def addSpaces(s: List[List[Int]]): Change = {
     Change(
       this.tokens,
-      this.spaces.flatten.zipAll(s.flatten,0,0).map { case (a, b) => a + b} grouped 5 toList
+      this.spaces.flatten.zipAll(s.flatten,0,0).map { case (a, b) => a + b} grouped 5 toList,
+      this.moveUp
     )
   }
 
@@ -31,9 +45,12 @@ case class Change(tokens: List[List[Int]], spaces: List[List[Int]]) {
     tmp(b(1) + 5 * b(0) - 6) += 1
     Change(
       this.tokens,
-      tmp.toList.grouped(5).toList
+      tmp.toList.grouped(5).toList,
+      this.moveUp
     )
   }
+
+  def moveUpFun(): Change = Change(this.tokens, this.spaces, true)
 
   def buildToFour(b: List[Int], board:Board): Change = {
     var height = Board.getHeight(board, b)
@@ -41,7 +58,8 @@ case class Change(tokens: List[List[Int]], spaces: List[List[Int]]) {
     tmp(b(1) + 5 * b(0) - 6) += (4 - height)
     Change(
       this.tokens,
-      tmp.toList.grouped(5).toList
+      tmp.toList.grouped(5).toList,
+      this.moveUp
     )
   }
 
@@ -56,7 +74,6 @@ object Cards {
   }
 
   def PlayRandom(board: Board): Board = {
-    // TODO handle exception if the list are empty
     val allResults = shuffle(actions(true, board) ++ actions(false, board))
     println(allResults)
     allResults.head
@@ -68,7 +85,8 @@ object Cards {
 
   def actions(isFirstToken: Boolean, board: Board): List[Board] = {
     val init = List(Change(List(List(0,0),List(0,0),List(0,0),List(0,0)),
-                      List(List(0,0,0,0,0),List(0,0,0,0,0),List(0,0,0,0,0),List(0,0,0,0,0),List(0,0,0,0,0))))
+                      List(List(0,0,0,0,0),List(0,0,0,0,0),List(0,0,0,0,0),List(0,0,0,0,0),List(0,0,0,0,0)),
+                      false))
 
     val card = board.players(0).card
 
@@ -272,7 +290,7 @@ object Cards {
       changes.flatMap(change => {
         val newBoard = board.addChange(change)
         getMovableDirs(isFirstToken, newBoard).map(dirs =>
-          change.addDirs(dirs)
+          change.addDirs(dirs, newBoard, isFirstToken)
         )
       })
     }
@@ -280,7 +298,7 @@ object Cards {
     def Build(changes: List[Change]): List[Change] = {
       changes.flatMap(change => {
         val newBoard = board.addChange(change)
-        if (newBoard.isWin) List(change)
+        if (newBoard.isWin && change.moveUp) List(change)
         else getBuildableDirs(isFirstToken, newBoard).map(spaces =>
           change.addSpaces(spaces)
         )
@@ -295,7 +313,7 @@ object Cards {
       changes.flatMap(change => {
         val newBoard = board.addChange(change)
         getApolloMoveDirs(isFirstToken, newBoard).map(dir => {
-          change.addDirs(dir)
+          change.addDirs(dir, newBoard, isFirstToken)
         })
       })
     }
@@ -303,7 +321,7 @@ object Cards {
     def ArtemisMove(changes: List[Change]): List[Change] = {
       changes.flatMap(change => {
         val newBoard = board.addChange(change)
-        if (newBoard.isWin) List(change)
+        if (newBoard.isWin && change.moveUp) List(change)
         else List(change) ++ Move(List(change)).filter(nobackChange => {
           if (isFirstToken) nobackChange.tokens(0) != List(0, 0)
           else nobackChange.tokens(1) != List(0, 0)
@@ -315,7 +333,7 @@ object Cards {
       Build(changes) ++
         changes.flatMap(change => {
           val newBoard = board.addChange(change)
-          if (newBoard.isWin) List(change)
+          if (newBoard.isWin && change.moveUp) List(change)
           else getBuildableDirsAltas(isFirstToken, newBoard).map(spaces =>
             change.addSpaces(spaces)
           )
@@ -345,7 +363,7 @@ object Cards {
       changes.flatMap(change => {
         val newBoard = board.addChange(change)
         getMinotaurMoveDirs(isFirstToken, newBoard).map(dir => {
-          change.addDirs(dir)
+          change.addDirs(dir, newBoard, isFirstToken)
         })
       })
     }
@@ -359,7 +377,7 @@ object Cards {
       changes.flatMap(change => {
         if (change.spaces.flatten.contains(1)) {
           val newBoard = board.addChange(change)
-          getPrometheusMoveDirs(isFirstToken, newBoard).map(dir => change.addDirs(dir))
+          getPrometheusMoveDirs(isFirstToken, newBoard).map(dir => change.addDirs(dir, newBoard, isFirstToken))
         }
         else Move(List(change))
       })
@@ -378,7 +396,7 @@ object Cards {
   }
 }
 
-/*object run extends App {
+object run extends App {
   val jsonString = "{\"turn\":14,\"players\":[{\"tokens\":[[4,1],[4,3]],\"card\":\"Minotaur\"},{\"tokens\":[[3,5],[4,2]],\"card\":\"Apollo\"}],\"style\":{\"players\":[\"kenway/play\",\"stone/play\"]},\"spaces\":[[0,0,0,0,0],[1,0,0,0,0],[3,2,0,0,0],[0,3,1,0,1],[1,0,1,1,0]]}"
 
   val board = JSON.parseJSON(jsonString)
@@ -388,10 +406,11 @@ object Cards {
 
   //val board1 = JSON.parseJSON("""{"turn":0,"players":[{"tokens":[[1,1],[5,3]],"card":"Artemis"},{"tokens":[[5,4],[5,5]],"card":"Apollo"}],"spaces":[[3,3,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]}""")
   //val board2 = JSON.parseJSON("""{"turn":1,"players":[{"tokens":[[5,4],[5,5]],"card":"Apollo"},{"tokens":[[1,2],[5,3]],"card":"Artemis"}],"spaces":[[3,3,0,0,0],[1,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]}""")
+  val board1 = JSON.parseJSON("""{"turn":0,"players":[{"tokens":[[2,3],[4,4]],"card":"Artemis"},{"tokens":[[2,5],[3,5]],"card":"Prometheus"}],"spaces":[[0,0,0,0,2],[1,1,2,0,0],[1,0,0,3,0],[0,0,3,0,0],[0,0,0,1,4]]}""")
+  val board2 = JSON.parseJSON("""{"turn":1,"players":[{"tokens":[[2,5],[3,5]],"card":"Prometheus"},{"tokens":[[4,3],[4,4]],"card":"Artemis"}],"spaces":[[0,0,0,0,2],[1,1,2,0,0],[1,0,0,3,0],[0,0,3,0,0],[0,0,0,1,4]]}""")
+  println(board1)
+  println(Cards.listAll(board1).map(x => JSON.encode(x)).mkString("\n"))
 
-  //println(board1)
-  //println(Cards.listAll(board1).map(x => JSON.encode(x)).mkString("\n"))
+  println(Cards.listAll(board1).contains(board2))
 
-  //println(Cards.listAll(board1).contains(board2))
-
-}*/
+}
